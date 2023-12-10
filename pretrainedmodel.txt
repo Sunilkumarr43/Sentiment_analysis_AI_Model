@@ -1,0 +1,33 @@
+import tensorflow as tf
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
+
+# Assuming you have positive and neutral texts for training
+positive_texts = ["And they lived happily ever after..", "Another positive text..."]
+neutral_texts = ["They were okay friends but their friendship kept growing with time", "Another neutral text..."]
+
+texts = positive_texts + neutral_texts
+labels = [1] * len(positive_texts) + [0] * len(neutral_texts)
+
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(texts)
+
+vocab_size = len(tokenizer.word_index) + 1
+
+sequences = tokenizer.texts_to_sequences(texts)
+padded_sequences = pad_sequences(sequences)
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Embedding(input_dim=vocab_size, output_dim=16, input_length=padded_sequences.shape[1]),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(8, activation='relu'),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+model.fit(padded_sequences, np.array(labels), epochs=5)
+
+# Save the trained model to a file
+model.save('path/to/pretrained_model.h5')
